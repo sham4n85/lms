@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { QuizSection } from '@/components/QuizSection';
+import { AssignmentSection } from '@/components/AssignmentSection';
 
 interface Lesson {
   id: string;
@@ -130,6 +131,7 @@ export default function LessonPage() {
       )}
 
       <QuizSection lessonId={lessonId} />
+      <AssignmentSection lessonId={lessonId} />
 
       <div className="border-t pt-6 flex items-center justify-between">
         <button
