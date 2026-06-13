@@ -6,8 +6,9 @@ import { CoursesModule } from './modules/courses/courses.module';
 import { SectionsModule } from './modules/sections/sections.module';
 import { LessonsModule } from './modules/lessons/lessons.module';
 import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { QuizzesModule } from './modules/quizzes/quizzes.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, CoursesModule, SectionsModule, LessonsModule, EnrollmentsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, CoursesModule, SectionsModule, LessonsModule, EnrollmentsModule, QuizzesModule],
 })
 export class AppModule {}

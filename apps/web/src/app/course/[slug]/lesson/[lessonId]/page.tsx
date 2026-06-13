@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { QuizSection } from '@/components/QuizSection';
 
 interface Lesson {
   id: string;
@@ -127,6 +128,8 @@ export default function LessonPage() {
           />
         </div>
       )}
+
+      <QuizSection lessonId={lessonId} />
 
       <div className="border-t pt-6 flex items-center justify-between">
         <button
