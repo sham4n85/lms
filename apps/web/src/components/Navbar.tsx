@@ -30,6 +30,14 @@ export function Navbar() {
                   Instructor
                 </Link>
               )}
+              {user.role === 'ADMIN' && (
+                <Link
+                  href="/admin"
+                  className="text-sm text-red-600 hover:text-red-800 font-medium"
+                >
+                  Admin
+                </Link>
+              )}
               <span className="text-sm text-gray-500">{user.name}</span>
               <button
                 onClick={logout}

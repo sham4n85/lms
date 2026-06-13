@@ -10,8 +10,9 @@ import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { AssignmentsModule } from './modules/assignments/assignments.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { QaModule } from './modules/qa/qa.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, CoursesModule, SectionsModule, LessonsModule, EnrollmentsModule, QuizzesModule, AssignmentsModule, CertificatesModule, QaModule],
+  imports: [PrismaModule, AuthModule, UsersModule, CoursesModule, SectionsModule, LessonsModule, EnrollmentsModule, QuizzesModule, AssignmentsModule, CertificatesModule, QaModule, AdminModule],
 })
 export class AppModule {}
