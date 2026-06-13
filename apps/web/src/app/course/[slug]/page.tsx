@@ -66,9 +66,10 @@ export default function CoursePage() {
               <h3 className="font-semibold text-gray-900">{section.title}</h3>
             </div>
             {section.lessons.map((lesson) => (
-              <div
+              <Link
+                href={`/course/${slug}/lesson/${lesson.id}`}
                 key={lesson.id}
-                className="px-6 py-3 border-b last:border-b-0 flex items-center justify-between hover:bg-gray-50"
+                className="px-6 py-3 border-b last:border-b-0 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-gray-400 text-sm">
@@ -81,7 +82,7 @@ export default function CoursePage() {
                     Preview
                   </span>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         ))}
