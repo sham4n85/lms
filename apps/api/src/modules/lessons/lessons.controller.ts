@@ -4,6 +4,7 @@ import {
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto, UpdateLessonDto } from './dto/lesson.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OptionalAuthGuard } from '../../common/guards/optional-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -14,6 +15,7 @@ export class LessonsController {
   constructor(private readonly lessonsService: LessonsService) {}
 
   @Get('lessons/:id')
+  @UseGuards(OptionalAuthGuard)
   async findOne(@Param('id') id: string, @CurrentUser('id') userId?: string) {
     return this.lessonsService.findOne(id, userId);
   }

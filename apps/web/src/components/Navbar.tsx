@@ -19,6 +19,9 @@ export function Navbar() {
           </Link>
           {!isLoading && user ? (
             <>
+              <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Dashboard
+              </Link>
               {user.role === 'INSTRUCTOR' && (
                 <Link
                   href="/instructor/courses"

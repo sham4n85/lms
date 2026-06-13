@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/utils';
+import { useAuth } from '@/lib/auth';
 
 interface Lesson {
   id: string;
@@ -33,8 +34,13 @@ interface Course {
 
 export default function CoursePage() {
   const { slug } = useParams<{ slug: string }>();
+  const { user, token } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [enrolled, setEnrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollMsg, setEnrollMsg] = useState('');
 
   useEffect(() => {
     if (!slug) return;
@@ -43,6 +49,28 @@ export default function CoursePage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    if (!course?.id || !token) return;
+    api.get<{ enrolled: boolean; progress?: number }>(`/courses/${course.id}/enrollment-status`)
+      .then((s) => { setEnrolled(s.enrolled); if (s.progress !== undefined) setProgress(s.progress); })
+      .catch(() => {});
+  }, [course?.id, token]);
+
+  const handleEnroll = async () => {
+    if (!user) { setEnrollMsg('Please login to enroll'); return; }
+    setEnrolling(true);
+    setEnrollMsg('');
+    try {
+      await api.post(`/courses/${course!.id}/enroll`, {});
+      setEnrolled(true);
+      setEnrollMsg('Successfully enrolled!');
+    } catch (err: any) {
+      setEnrollMsg(err.message);
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   if (loading) return <div className="text-center py-12 text-gray-500">Loading...</div>;
   if (!course) return <div className="text-center py-12 text-gray-500">Course not found</div>;
@@ -56,6 +84,35 @@ export default function CoursePage() {
           <span>By {course.instructor.name}</span>
           <span>{course._count.enrollments} enrolled</span>
           {course.difficulty && <span className="capitalize">{course.difficulty}</span>}
+        </div>
+
+        <div className="mt-4">
+          {enrolled ? (
+            <div className="flex items-center gap-4">
+              <span className="text-green-600 font-medium">Enrolled</span>
+              {progress > 0 && (
+                <div className="flex-1 max-w-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${progress}%` }} />
+                    </div>
+                    <span className="text-sm font-medium text-gray-600">{progress}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={handleEnroll}
+              disabled={enrolling}
+              className="bg-indigo-600 text-white px-8 py-2.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {enrolling ? 'Enrolling...' : 'Enroll Now'}
+            </button>
+          )}
+          {enrollMsg && (
+            <p className={`text-sm mt-2 ${enrolled ? 'text-green-600' : 'text-red-600'}`}>{enrollMsg}</p>
+          )}
         </div>
       </div>
 
