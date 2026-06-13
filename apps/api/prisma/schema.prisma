@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  name            String
+  role            UserRole  @default(STUDENT)
+  emailVerified   Boolean   @default(false)
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret String?
+  avatarUrl       String?
+  bio             String?
+  socialLogins    Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  instructorCourses Course[]            @relation("InstructorCourses")
+  enrollments       Enrollment[]
+  quizAttempts      QuizAttempt[]
+  assignmentSubmissions AssignmentSubmission[]
+  certificates      Certificate[]
+  reviews           Review[]
+  qaQuestions       QAQuestion[]
+  orders            Order[]
+}
+
+model Course {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  description     String?   @db.Text
+  shortDescription String?
+  thumbnailUrl    String?
+  price           Decimal   @default(0) @db.Decimal(10,2)
+  isFree          Boolean   @default(false)
+  isComingSoon    Boolean   @default(false)
+  isPublished     Boolean   @default(false)
+  difficulty      String?
+  badgeText       String?
+  dripType        String?
+  dripInterval    Int?
+  enrollmentExpiresAfter Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  instructorId    String
+  instructor      User      @relation("InstructorCourses", fields: [instructorId], references: [id])
+  sections        Section[]
+  enrollments     Enrollment[]
+  reviews         Review[]
+  qaQuestions     QAQuestion[]
+  faqs            CourseFAQ[]
+  orders          Order[]
+  certificates    Certificate[]
+}
+
+model Section {
+  id        String   @id @default(cuid())
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title      String
+  sortOrder  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  lessons    Lesson[]
+}
+
+enum LessonType {
+  TEXT
+  VIDEO
+  PDF
+  AUDIO
+  LIVESTREAM
+}
+
+model Lesson {
+  id             String     @id @default(cuid())
+  sectionId      String
+  section        Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title          String
+  type           LessonType @default(TEXT)
+  content        String?    @db.Text
+  videoUrl       String?
+  videoDuration  Int?
+  pdfUrl         String?
+  audioUrl       String?
+  liveStreamUrl  String?
+  externalVideoUrl String?
+  attachments    Json?
+  isPreview      Boolean    @default(false)
+  sortOrder      Int
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  progress   Int      @default(0)
+  status     String   @default("active")
+  enrolledAt DateTime @default(now())
+  completedAt DateTime?
+  expiresAt  DateTime?
+
+  @@unique([userId, courseId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id])
+  rating    Int
+  content   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model QAQuestion {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  lessonId    String?
+  title      String
+  content    String   @db.Text
+  upvotes    Int      @default(0)
+  isResolved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  answers    QAAnswer[]
+}
+
+model QAAnswer {
+  id        String   @id @default(cuid())
+  questionId String
+  question   QAQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId     String
+  content    String   @db.Text
+  isAccepted Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model CourseFAQ {
+  id       String @id @default(cuid())
+  courseId  String
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  question String
+  answer   String  @db.Text
+  sortOrder Int
+}
+
+model Quiz {
+  id           String   @id @default(cuid())
+  lessonId     String   @unique
+  title        String
+  description  String?  @db.Text
+  passingScore Int      @default(80)
+  maxAttempts  Int      @default(3)
+  showResult   Boolean  @default(true)
+  randomize    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  questions    Question[]
+  attempts     QuizAttempt[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  SINGLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  FILL_BLANK
+  MATCHING
+  IMAGE_MATCHING
+  ORDERING
+}
+
+model Question {
+  id        String       @id @default(cuid())
+  quizId    String
+  quiz      Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  type      QuestionType @default(MULTIPLE_CHOICE)
+  title     String       @db.Text
+  options   Json?
+  points    Int          @default(1)
+  sortOrder Int
+  createdAt DateTime     @default(now())
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  score     Int
+  answers   Json?
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+}
+
+model Assignment {
+  id          String   @id @default(cuid())
+  lessonId    String   @unique
+  title       String
+  description String   @db.Text
+  dueDays     Int?
+  maxScore    Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id           String   @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  content      String?  @db.Text
+  fileUrl      String?
+  score        Int?
+  feedback     String?  @db.Text
+  submittedAt  DateTime @default(now())
+  gradedAt     DateTime?
+
+  @@unique([assignmentId, userId])
+}
+
+model Certificate {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  templateId String?
+  issuedAt   DateTime @default(now())
+  data       Json?
+
+  @@unique([userId, courseId])
+}
+
+model Order {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  courseId        String?
+  course          Course?  @relation(fields: [courseId], references: [id])
+  amount         Decimal  @db.Decimal(10,2)
+  currency       String   @default("USD")
+  status         String   @default("pending")
+  paymentMethod  String?
+  paymentDetails Json?
+  createdAt      DateTime @default(now())
+}
