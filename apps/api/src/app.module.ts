@@ -8,8 +8,9 @@ import { LessonsModule } from './modules/lessons/lessons.module';
 import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { AssignmentsModule } from './modules/assignments/assignments.module';
+import { CertificatesModule } from './modules/certificates/certificates.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, CoursesModule, SectionsModule, LessonsModule, EnrollmentsModule, QuizzesModule, AssignmentsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, CoursesModule, SectionsModule, LessonsModule, EnrollmentsModule, QuizzesModule, AssignmentsModule, CertificatesModule],
 })
 export class AppModule {}

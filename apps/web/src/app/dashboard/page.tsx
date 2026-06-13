@@ -6,6 +6,13 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 
+interface Certificate {
+  id: string;
+  issuedAt: string;
+  data: any;
+  course: { id: string; title: string; slug: string; thumbnailUrl: string | null };
+}
+
 interface Enrollment {
   id: string;
   enrolledAt: string;
@@ -25,13 +32,20 @@ export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push('/login'); return; }
-    api.get<Enrollment[]>('/enrollments/my')
-      .then(setEnrollments)
+    Promise.all([
+      api.get<Enrollment[]>('/enrollments/my'),
+      api.get<Certificate[]>('/certificates/my').catch(() => []),
+    ])
+      .then(([enr, certs]) => {
+        setEnrollments(enr);
+        setCertificates(certs);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [user, authLoading, router]);
@@ -43,8 +57,9 @@ export default function DashboardPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">My Dashboard</h1>
 
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Enrolled Courses</h2>
       {enrollments.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border">
+        <div className="text-center py-12 bg-white rounded-xl border mb-8">
           <p className="text-gray-500 mb-4">You are not enrolled in any courses yet.</p>
           <Link
             href="/courses"
@@ -54,7 +69,7 @@ export default function DashboardPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 mb-8">
           {enrollments.map((enr) => (
             <Link
               key={enr.id}
@@ -91,6 +106,31 @@ export default function DashboardPage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {certificates.length > 0 && (
+        <>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Certificates</h2>
+          <div className="grid gap-4">
+            {certificates.map((cert) => (
+              <Link
+                key={cert.id}
+                href={`/certificate/${cert.id}`}
+                className="block bg-white border border-yellow-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🎓</span>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{cert.course.title}</h3>
+                    <p className="text-sm text-gray-500">
+                      Issued {new Date(cert.issuedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
