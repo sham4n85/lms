@@ -35,6 +35,7 @@ model User {
   certificates      Certificate[]
   reviews           Review[]
   qaQuestions       QAQuestion[]
+  qaAnswers         QAAnswer[]
   orders            Order[]
   lessonProgress    LessonProgress[]
 }
@@ -176,6 +177,7 @@ model QAAnswer {
   questionId String
   question   QAQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   userId     String
+  user       User     @relation(fields: [userId], references: [id])
   content    String   @db.Text
   isAccepted Boolean  @default(false)
   createdAt  DateTime @default(now())

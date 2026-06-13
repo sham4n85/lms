@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { QASection } from '@/components/QASection';
 
 interface Lesson {
   id: string;
@@ -144,6 +145,8 @@ export default function CoursePage() {
           </div>
         ))}
       </div>
+
+      <QASection courseId={course.id} />
     </div>
   );
 }
